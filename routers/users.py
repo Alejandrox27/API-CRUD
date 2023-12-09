@@ -57,6 +57,13 @@ async def update_user(user: User):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request")
     
     return search_user("_id", ObjectId(user.id))
+
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(id: str):
+    try:
+        client_db.users.find_one_and_delete({"_id": ObjectId(id)})
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request")
     
 def search_user(field: str, key):
     user_find = client_db.users.find_one({field: key})
