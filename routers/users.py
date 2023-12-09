@@ -8,11 +8,15 @@ router = APIRouter(prefix="/users",
                    tags=["users"],
                    responses={status.HTTP_404_NOT_FOUND : {"message": "User not found"}})
 
-@router.get("/")
+@router.get("/", response_model=list, status_code=status.HTTP_200_OK)
 async def get_users():
     users = client_db.users.find()
     
     return users_schema(users)
+
+@router.get("/get-user", response_model=User_output, status_code=status.HTTP_200_OK)
+async def get_user(id: str):
+    return search_user("_id", ObjectId(id))
 
 @router.post("/", response_model=User_output, status_code=status.HTTP_201_CREATED)
 async def create_user(user: User):
