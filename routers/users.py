@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from models.users_models import User, User_output
 from db.client import client_db
-from schemas.user_schema import user_schema
+from schemas.user_schema import user_schema, users_schema
 from bson import ObjectId
 
 router = APIRouter(prefix="/users",
@@ -10,7 +10,9 @@ router = APIRouter(prefix="/users",
 
 @router.get("/")
 async def get_users():
-    pass
+    users = client_db.users.find()
+    
+    return users_schema(users)
 
 @router.post("/", response_model=User_output, status_code=status.HTTP_201_CREATED)
 async def create_user(user: User):
@@ -31,6 +33,5 @@ def search_user(field: str, key):
     user_find = client_db.users.find_one({field: key})
     
     if user_find != None:
-        print(user_find)
         return User_output(**user_schema(user_find))
     return False
