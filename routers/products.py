@@ -9,6 +9,8 @@ router = APIRouter(prefix="/products",
                    responses={status.HTTP_404_NOT_FOUND: {"message": "product not found"}}
                    )
 
+exception_var = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
 @router.get("/", response_model=list, status_code=status.HTTP_200_OK)
 async def get_products():
     products_ = client_db.products.find()
@@ -19,8 +21,6 @@ async def get_products():
 
 @router.get("/get-product", response_model=Product, status_code=status.HTTP_200_OK)
 async def get_product(name: str = "", id: str = "", supplier: str = ""):
-    exception_var = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    
     if name == "" and id == "" and supplier == "":
         raise exception_var
     
@@ -58,10 +58,8 @@ async def create_product(product: Product):
     
     return search_product("_id", id)
     
-@router.put("/", status_code=status.HTTP_201_CREATED)
+@router.put("/", response_model=Product, status_code=status.HTTP_201_CREATED)
 async def replace_product(product: Product):
-    exception_var = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    
     product_dict = dict(product)
     del product_dict["id"]
     
@@ -75,6 +73,13 @@ async def replace_product(product: Product):
     if type(product) == Product:
         return product
     raise exception_var
+    
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(id: str):
+    try:
+        client_db.products.find_one_and_delete({"_id": ObjectId(id)})
+    except:
+        raise exception_var
     
 def search_product(field: str, key) -> Product:
     product_db = client_db.products.find_one({field: key})
