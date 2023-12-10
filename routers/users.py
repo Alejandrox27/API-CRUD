@@ -3,6 +3,9 @@ from models.users_models import User, User_output
 from db.client import client_db
 from schemas.user_schema import user_schema, users_schema
 from bson import ObjectId
+from passlib.context import CryptContext
+
+crypt = CryptContext(schemes=["bcrypt"])
 
 router = APIRouter(prefix="/users",
                    tags=["users"],
@@ -33,6 +36,7 @@ async def create_user(user: User):
     new_user = dict(user)
     del new_user["id"]
     new_user["email"] = str(new_user["email"]).lower()
+    new_user["password"] = crypt.hash(new_user["password"])
     
     id = client_db.users.insert_one(new_user).inserted_id
     
@@ -50,6 +54,7 @@ async def update_user(user: User):
     new_user = dict(user)
     del new_user["id"]
     new_user["email"] = str(new_user["email"]).lower()
+    new_user["password"] = crypt.hash(new_user["password"])
     
     try:
         client_db.users.find_one_and_replace({"_id": ObjectId(user.id)}, new_user)
