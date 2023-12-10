@@ -58,6 +58,24 @@ async def create_product(product: Product):
     
     return search_product("_id", id)
     
+@router.put("/", status_code=status.HTTP_201_CREATED)
+async def replace_product(product: Product):
+    exception_var = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    
+    product_dict = dict(product)
+    del product_dict["id"]
+    
+    try:
+        client_db.products.find_one_and_replace({"_id": ObjectId(product.id)}, product_dict)
+    except:
+        raise exception_var
+    
+    product = search_product("_id", ObjectId(product.id))
+    
+    if type(product) == Product:
+        return product
+    raise exception_var
+    
 def search_product(field: str, key) -> Product:
     product_db = client_db.products.find_one({field: key})
     
